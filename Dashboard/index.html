@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>REST API Testing Dashboard</title>
+
+    <link rel="stylesheet"
+          href="style.css">
+
+</head>
+
+
+<body>
+
+
+<header>
+
+    <div>
+
+        <h1>
+            REST API Testing Dashboard
+        </h1>
+
+        <p>
+            Automated API Testing & AI-Assisted Analysis
+        </p>
+
+    </div>
+
+
+    <button id="runTestsBtn">
+        ▶ Run Tests
+    </button>
+
+</header>
+
+
+
+<main>
+
+
+    <!-- =====================================
+         SUMMARY
+    ====================================== -->
+
+    <section class="summary-grid">
+
+        <div class="summary-card">
+
+            <h3>Total APIs</h3>
+
+            <div id="totalApis"
+                 class="summary-number">
+
+                0
+
+            </div>
+
+        </div>
+
+
+        <div class="summary-card">
+
+            <h3>Passed</h3>
+
+            <div id="passedApis"
+                 class="summary-number">
+
+                0
+
+            </div>
+
+        </div>
+
+
+        <div class="summary-card">
+
+            <h3>Failed</h3>
+
+            <div id="failedApis"
+                 class="summary-number">
+
+                0
+
+            </div>
+
+        </div>
+
+
+        <div class="summary-card">
+
+            <h3>Warnings</h3>
+
+            <div id="warningApis"
+                 class="summary-number">
+
+                0
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =====================================
+         CUSTOM TEST CASE BUILDER
+    ====================================== -->
+
+    <section class="panel">
+
+        <div class="panel-header">
+
+            <h2>
+                🧪 Custom Test Case Builder
+            </h2>
+
+            <p>
+                Add and configure REST API test cases
+            </p>
+
+        </div>
+
+
+        <div class="form-grid">
+
+
+            <div class="form-group">
+
+                <label>
+                    Test Name
+                </label>
+
+                <input
+                    id="testName"
+                    type="text"
+                    placeholder="Example: Login API"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    API URL
+                </label>
+
+                <input
+                    id="testUrl"
+                    type="text"
+                    placeholder="http://127.0.0.1:8000/users"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    HTTP Method
+                </label>
+
+                <select id="testMethod">
+
+                    <option value="GET">
+                        GET
+                    </option>
+
+                    <option value="POST">
+                        POST
+                    </option>
+
+                    <option value="PUT">
+                        PUT
+                    </option>
+
+                    <option value="DELETE">
+                        DELETE
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    Expected Status
+                </label>
+
+                <input
+                    id="expectedStatus"
+                    type="number"
+                    value="200"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    Expected Response Field
+                </label>
+
+                <input
+                    id="expectedField"
+                    type="text"
+                    placeholder="Example: users"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    Repeat Tests
+                </label>
+
+                <input
+                    id="repeatCount"
+                    type="number"
+                    value="1"
+                    min="1"
+                    max="20"
+                >
+
+            </div>
+
+
+        </div>
+
+
+        <button
+            id="addTestBtn"
+            class="add-button">
+
+            ＋ Add Test Case
+
+        </button>
+
+
+        <div
+            id="testCaseMessage"
+            class="form-message">
+        </div>
+
+
+        <div class="test-case-list">
+
+            <h3>
+                Configured Test Cases
+            </h3>
+
+            <div id="testCasesList">
+
+                Loading...
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =====================================
+         API RESULTS
+    ====================================== -->
+
+    <section class="panel">
+
+        <div class="panel-header">
+
+            <h2>
+                API Test Results
+            </h2>
+
+        </div>
+
+
+        <div class="table-container">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>API</th>
+
+                        <th>Method</th>
+
+                        <th>Status</th>
+
+                        <th>Response Time</th>
+
+                        <th>Result</th>
+
+                        <th>Failure Type</th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody id="resultsTable">
+
+                    <tr>
+
+                        <td colspan="6">
+                            No test results available
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =====================================
+         FAILURE PATTERNS
+    ====================================== -->
+
+    <section class="panel">
+
+        <div class="panel-header">
+
+            <h2>
+                📊 Failure Pattern Analysis
+            </h2>
+
+        </div>
+
+
+        <div id="failurePatterns">
+
+            <div class="empty-state">
+
+                <h3>
+                    No Failure Patterns Yet
+                </h3>
+
+                <p>
+                    Run the API tests to analyze
+                    recurring failures.
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =====================================
+         TEST HISTORY
+    ====================================== -->
+
+    <section class="panel">
+
+        <div class="panel-header">
+
+            <h2>
+                📈 Test History
+            </h2>
+
+        </div>
+
+
+        <div class="table-container">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>Run</th>
+
+                        <th>Date & Time</th>
+
+                        <th>Total APIs</th>
+
+                        <th>Passed</th>
+
+                        <th>Failed</th>
+
+                        <th>Warnings</th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody id="historyTable">
+
+                    <tr>
+
+                        <td colspan="6">
+
+                            No test history available
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =====================================
+         AI
+    ====================================== -->
+
+    <section class="panel">
+
+        <div class="panel-header">
+
+            <h2>
+                🤖 AI-Assisted Analysis
+            </h2>
+
+        </div>
+
+
+        <div id="aiResults">
+
+            <div class="empty-state">
+
+                <h3>
+                    No AI Analysis Yet
+                </h3>
+
+                <p>
+                    Run the API tests to generate
+                    recommendations.
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+</main>
+
+
+
+<footer>
+
+    <p>
+        REST API Automated Testing & AI-Assisted
+        Recommendation System
+    </p>
+
+    <span id="lastRun">
+        Ready
+    </span>
+
+</footer>
+
+
+<script src="script.js"></script>
+
+</body>
+
+</html>
