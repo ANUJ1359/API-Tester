@@ -1,0 +1,58 @@
+[
+    {
+        "name": "Users API",
+        "url": "http://127.0.0.1:8000/users",
+        "method": "GET",
+        "expected_status": 200,
+        "expected_field": "users",
+        "repeat": 1
+    },
+    {
+        "name": "Products API",
+        "url": "http://127.0.0.1:8000/products",
+        "method": "GET",
+        "expected_status": 200,
+        "expected_field": "products",
+        "repeat": 1
+    },
+    {
+        "name": "Orders API",
+        "url": "http://127.0.0.1:8000/orders",
+        "method": "GET",
+        "expected_status": 200,
+        "expected_field": "orders",
+        "repeat": 1
+    },
+    {
+        "name": "Broken API",
+        "url": "http://127.0.0.1:8000/broken",
+        "method": "GET",
+        "expected_status": 200,
+        "expected_field": "users",
+        "repeat": 1
+    },
+    {
+        "name": "Slow API",
+        "url": "http://127.0.0.1:8000/slow",
+        "method": "GET",
+        "expected_status": 200,
+        "expected_field": "message",
+        "repeat": 1
+    },
+    {
+        "name": "Unstable API",
+        "url": "http://127.0.0.1:8000/unstable",
+        "method": "GET",
+        "expected_status": 200,
+        "expected_field": "message",
+        "repeat": 5
+    },
+    {
+        "name": "Login API",
+        "url": "http://127.0.0.1:8000/users",
+        "method": "POST",
+        "expected_status": 201,
+        "expected_field": "users",
+        "repeat": 1
+    }
+]

@@ -1,0 +1,84 @@
+[
+    {
+        "name": "Users API",
+        "method": "GET",
+        "url": "http://127.0.0.1:8000/users",
+        "status": 200,
+        "response_time": 6.42,
+        "result": "PASS",
+        "failure_type": "NONE",
+        "ai": null
+    },
+    {
+        "name": "Products API",
+        "method": "GET",
+        "url": "http://127.0.0.1:8000/products",
+        "status": 200,
+        "response_time": 4.66,
+        "result": "PASS",
+        "failure_type": "NONE",
+        "ai": null
+    },
+    {
+        "name": "Orders API",
+        "method": "GET",
+        "url": "http://127.0.0.1:8000/orders",
+        "status": 200,
+        "response_time": 13.82,
+        "result": "PASS",
+        "failure_type": "NONE",
+        "ai": null
+    },
+    {
+        "name": "Broken API",
+        "method": "GET",
+        "url": "http://127.0.0.1:8000/broken",
+        "status": 200,
+        "response_time": 2.68,
+        "result": "FAIL",
+        "failure_type": "RESPONSE VALIDATION ERROR",
+        "ai": {
+            "diagnosis": "The API response does not match the expected structure.",
+            "recommendation": "Verify the response schema and ensure all required fields are returned."
+        }
+    },
+    {
+        "name": "Slow API",
+        "method": "GET",
+        "url": "http://127.0.0.1:8000/slow",
+        "status": 200,
+        "response_time": 3004.84,
+        "result": "WARNING",
+        "failure_type": "PERFORMANCE ISSUE",
+        "ai": {
+            "diagnosis": "API response time is high (3004.84 ms).",
+            "recommendation": "Check database queries, external API calls, server processing time and caching."
+        }
+    },
+    {
+        "name": "Unstable API",
+        "method": "GET",
+        "url": "http://127.0.0.1:8000/unstable",
+        "status": 200,
+        "response_time": 14.62,
+        "result": "WARNING",
+        "failure_type": "INCONSISTENT RESPONSE",
+        "ai": {
+            "diagnosis": "Repeated requests produced different response structures or status codes.",
+            "recommendation": "Investigate conditional logic, unstable dependencies and error-handling mechanisms."
+        }
+    },
+    {
+        "name": "Login API",
+        "method": "POST",
+        "url": "http://127.0.0.1:8000/users",
+        "status": 405,
+        "response_time": 9.21,
+        "result": "FAIL",
+        "failure_type": "STATUS ERROR",
+        "ai": {
+            "diagnosis": "The API returned an unexpected HTTP status code.",
+            "recommendation": "Check server-side validation, routing and HTTP status handling."
+        }
+    }
+]
