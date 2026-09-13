@@ -9,6 +9,8 @@ import time
 import random
 
 
+#Auto Deploy Test
+
 app = FastAPI(
     title="REST API Automated Testing System"
 )
