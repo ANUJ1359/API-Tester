@@ -3,6 +3,30 @@ const API_BASE =
 
 
 // ==========================================
+// HELPER
+// ==========================================
+
+async function fetchJSON(url) {
+
+    const response =
+        await fetch(
+            url + "?t=" + Date.now()
+        );
+
+    if (!response.ok) {
+
+        throw new Error(
+            "Server returned " +
+            response.status
+        );
+
+    }
+
+    return await response.json();
+}
+
+
+// ==========================================
 // LOAD RESULTS
 // ==========================================
 
@@ -10,30 +34,58 @@ async function loadResults() {
 
     try {
 
-        const response = await fetch(
-            "../test_results.json?t=" + Date.now()
+        const [
+            results,
+            patterns,
+            history
+        ] = await Promise.all([
+
+            fetchJSON(
+                API_BASE +
+                "/test-results"
+            ),
+
+            fetchJSON(
+                API_BASE +
+                "/failure-patterns"
+            ),
+
+            fetchJSON(
+                API_BASE +
+                "/test-history"
+            )
+
+        ]);
+
+
+        displaySummary(
+            results
         );
 
-        const results =
-            await response.json();
+        displayResults(
+            results
+        );
 
+        displayAIResults(
+            results
+        );
 
-        displaySummary(results);
+        displayFailurePatterns(
+            patterns
+        );
 
-        displayResults(results);
+        displayHistory(
+            history
+        );
 
-        displayAIResults(results);
-
-        await loadFailurePatterns();
-
-        await loadHistory();
 
     }
 
     catch (error) {
 
         console.log(
-            "No test results available yet."
+            "Unable to load previous results:",
+            error
         );
 
     }
@@ -47,45 +99,53 @@ async function loadResults() {
 
 function displaySummary(results) {
 
-    const total = results.length;
+    const total =
+        results.length;
 
 
     const passed =
         results.filter(
-            r => r.result === "PASS"
+            r =>
+                r.result === "PASS"
         ).length;
 
 
     const failed =
         results.filter(
-            r => r.result === "FAIL"
+            r =>
+                r.result === "FAIL"
         ).length;
 
 
     const warnings =
         results.filter(
-            r => r.result === "WARNING"
+            r =>
+                r.result === "WARNING"
         ).length;
 
 
     document.getElementById(
         "totalApis"
-    ).textContent = total;
+    ).textContent =
+        total;
 
 
     document.getElementById(
         "passedApis"
-    ).textContent = passed;
+    ).textContent =
+        passed;
 
 
     document.getElementById(
         "failedApis"
-    ).textContent = failed;
+    ).textContent =
+        failed;
 
 
     document.getElementById(
         "warningApis"
-    ).textContent = warnings;
+    ).textContent =
+        warnings;
 
 }
 
@@ -105,83 +165,102 @@ function displayResults(results) {
     if (!results.length) {
 
         table.innerHTML = `
+
             <tr>
+
                 <td colspan="6">
+
                     No test results available
+
                 </td>
+
             </tr>
+
         `;
 
         return;
+
     }
 
 
     table.innerHTML = "";
 
 
-    results.forEach(result => {
+    results.forEach(
+        result => {
 
-        let statusClass;
+            let statusClass;
 
 
-        if (result.result === "PASS") {
+            if (
+                result.result ===
+                "PASS"
+            ) {
 
-            statusClass =
-                "status-pass";
+                statusClass =
+                    "status-pass";
+
+            }
+
+            else if (
+                result.result ===
+                "FAIL"
+            ) {
+
+                statusClass =
+                    "status-fail";
+
+            }
+
+            else {
+
+                statusClass =
+                    "status-warning";
+
+            }
+
+
+            const row =
+                document.createElement(
+                    "tr"
+                );
+
+
+            row.innerHTML = `
+
+                <td>
+                    ${result.name}
+                </td>
+
+                <td>
+                    ${result.method}
+                </td>
+
+                <td>
+                    ${result.status}
+                </td>
+
+                <td>
+                    ${result.response_time} ms
+                </td>
+
+                <td class="${statusClass}">
+                    ${result.result}
+                </td>
+
+                <td>
+                    ${result.failure_type}
+                </td>
+
+            `;
+
+
+            table.appendChild(
+                row
+            );
 
         }
-
-        else if (result.result === "FAIL") {
-
-            statusClass =
-                "status-fail";
-
-        }
-
-        else {
-
-            statusClass =
-                "status-warning";
-
-        }
-
-
-        const row =
-            document.createElement("tr");
-
-
-        row.innerHTML = `
-
-            <td>
-                ${result.name}
-            </td>
-
-            <td>
-                ${result.method}
-            </td>
-
-            <td>
-                ${result.status}
-            </td>
-
-            <td>
-                ${result.response_time} ms
-            </td>
-
-            <td class="${statusClass}">
-                ${result.result}
-            </td>
-
-            <td>
-                ${result.failure_type}
-            </td>
-
-        `;
-
-
-        table.appendChild(row);
-
-    });
+    );
 
 }
 
@@ -215,7 +294,8 @@ function displayAIResults(results) {
                 </h3>
 
                 <p>
-                    All tested APIs are behaving normally.
+                    All tested APIs are
+                    behaving normally.
                 </p>
 
             </div>
@@ -223,61 +303,77 @@ function displayAIResults(results) {
         `;
 
         return;
+
     }
 
 
     container.innerHTML = "";
 
 
-    failures.forEach(result => {
+    failures.forEach(
+        result => {
 
-        const ai = result.ai;
-
-
-        const card =
-            document.createElement(
-                "div"
-            );
+            const ai =
+                result.ai;
 
 
-        card.className =
-            "ai-card";
+            const card =
+                document.createElement(
+                    "div"
+                );
 
 
-        card.innerHTML = `
+            card.className =
+                "ai-card";
 
-            <h3>
-                ${result.name}
-            </h3>
 
-            <p>
-                <strong>Issue:</strong>
-                ${result.failure_type}
-            </p>
+            card.innerHTML = `
 
-            <p>
-                <strong>Diagnosis:</strong>
-                ${ai.diagnosis}
-            </p>
-
-            <div class="ai-recommendation">
-
-                <strong>
-                    Recommendation:
-                </strong>
+                <h3>
+                    ${result.name}
+                </h3>
 
                 <p>
-                    ${ai.recommendation}
+
+                    <strong>
+                        Issue:
+                    </strong>
+
+                    ${result.failure_type}
+
                 </p>
 
-            </div>
+                <p>
 
-        `;
+                    <strong>
+                        Diagnosis:
+                    </strong>
+
+                    ${ai.diagnosis}
+
+                </p>
+
+                <div class="ai-recommendation">
+
+                    <strong>
+                        Recommendation:
+                    </strong>
+
+                    <p>
+                        ${ai.recommendation}
+                    </p>
+
+                </div>
+
+            `;
 
 
-        container.appendChild(card);
+            container.appendChild(
+                card
+            );
 
-    });
+        }
+    );
 
 }
 
@@ -286,38 +382,9 @@ function displayAIResults(results) {
 // FAILURE PATTERNS
 // ==========================================
 
-async function loadFailurePatterns() {
-
-    try {
-
-        const response = await fetch(
-            "../failure_patterns.json?t="
-            + Date.now()
-        );
-
-
-        const patterns =
-            await response.json();
-
-
-        displayFailurePatterns(
-            patterns
-        );
-
-    }
-
-    catch {
-
-        console.log(
-            "No failure patterns."
-        );
-
-    }
-
-}
-
-
-function displayFailurePatterns(patterns) {
+function displayFailurePatterns(
+    patterns
+) {
 
     const container =
         document.getElementById(
@@ -325,8 +392,17 @@ function displayFailurePatterns(patterns) {
         );
 
 
+    if (!patterns) {
+
+        patterns = {};
+
+    }
+
+
     const entries =
-        Object.entries(patterns);
+        Object.entries(
+            patterns
+        );
 
 
     if (!entries.length) {
@@ -340,7 +416,8 @@ function displayFailurePatterns(patterns) {
                 </h3>
 
                 <p>
-                    No recurring issues were detected.
+                    Run the API tests to
+                    analyze recurring failures.
                 </p>
 
             </div>
@@ -348,16 +425,20 @@ function displayFailurePatterns(patterns) {
         `;
 
         return;
+
     }
 
 
     entries.sort(
-        (a, b) => b[1] - a[1]
+        (a, b) =>
+            b[1] - a[1]
     );
 
 
     let html = `
+
         <div class="pattern-grid">
+
     `;
 
 
@@ -369,11 +450,15 @@ function displayFailurePatterns(patterns) {
                 <div class="pattern-card">
 
                     <div class="pattern-count">
+
                         ${count}
+
                     </div>
 
                     <div class="pattern-label">
+
                         ${type}
+
                     </div>
 
                 </div>
@@ -384,7 +469,11 @@ function displayFailurePatterns(patterns) {
     );
 
 
-    html += `</div>`;
+    html += `
+
+        </div>
+
+    `;
 
 
     const mostCommon =
@@ -396,14 +485,19 @@ function displayFailurePatterns(patterns) {
         <div class="most-common">
 
             <div class="most-common-title">
+
                 MOST COMMON ISSUE
+
             </div>
 
             <div class="most-common-value">
 
                 ${mostCommon[0]}
+
                 →
+
                 ${mostCommon[1]}
+
                 occurrence(s)
 
             </div>
@@ -413,7 +507,8 @@ function displayFailurePatterns(patterns) {
     `;
 
 
-    container.innerHTML = html;
+    container.innerHTML =
+        html;
 
 }
 
@@ -421,35 +516,6 @@ function displayFailurePatterns(patterns) {
 // ==========================================
 // HISTORY
 // ==========================================
-
-async function loadHistory() {
-
-    try {
-
-        const response = await fetch(
-            "../test_history.json?t="
-            + Date.now()
-        );
-
-
-        const history =
-            await response.json();
-
-
-        displayHistory(history);
-
-    }
-
-    catch {
-
-        console.log(
-            "No history available."
-        );
-
-    }
-
-}
-
 
 function displayHistory(history) {
 
@@ -459,15 +525,19 @@ function displayHistory(history) {
         );
 
 
-    if (!history ||
-        !history.length) {
+    if (
+        !history ||
+        !history.length
+    ) {
 
         table.innerHTML = `
 
             <tr>
 
                 <td colspan="6">
+
                     No test history available
+
                 </td>
 
             </tr>
@@ -475,6 +545,7 @@ function displayHistory(history) {
         `;
 
         return;
+
     }
 
 
@@ -483,46 +554,50 @@ function displayHistory(history) {
 
     [...history]
         .reverse()
-        .forEach(run => {
+        .forEach(
+            run => {
 
-            const row =
-                document.createElement(
-                    "tr"
+                const row =
+                    document.createElement(
+                        "tr"
+                    );
+
+
+                row.innerHTML = `
+
+                    <td>
+                        #${run.run}
+                    </td>
+
+                    <td>
+                        ${run.timestamp}
+                    </td>
+
+                    <td>
+                        ${run.total}
+                    </td>
+
+                    <td class="status-pass">
+                        ${run.passed}
+                    </td>
+
+                    <td class="status-fail">
+                        ${run.failed}
+                    </td>
+
+                    <td class="status-warning">
+                        ${run.warnings}
+                    </td>
+
+                `;
+
+
+                table.appendChild(
+                    row
                 );
 
-
-            row.innerHTML = `
-
-                <td>
-                    #${run.run}
-                </td>
-
-                <td>
-                    ${run.timestamp}
-                </td>
-
-                <td>
-                    ${run.total}
-                </td>
-
-                <td class="status-pass">
-                    ${run.passed}
-                </td>
-
-                <td class="status-fail">
-                    ${run.failed}
-                </td>
-
-                <td class="status-warning">
-                    ${run.warnings}
-                </td>
-
-            `;
-
-
-            table.appendChild(row);
-
-        });
+            }
+        );
 
 }
 
@@ -537,8 +612,18 @@ async function loadTestCases() {
 
         const response =
             await fetch(
-                API_BASE + "/test-cases"
+                API_BASE +
+                "/test-cases"
             );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Unable to load test cases"
+            );
+
+        }
 
 
         const testCases =
@@ -567,7 +652,9 @@ async function loadTestCases() {
 // DISPLAY TEST CASES
 // ==========================================
 
-function displayTestCases(testCases) {
+function displayTestCases(
+    testCases
+) {
 
     const container =
         document.getElementById(
@@ -588,6 +675,7 @@ function displayTestCases(testCases) {
         `;
 
         return;
+
     }
 
 
@@ -620,16 +708,27 @@ function displayTestCases(testCases) {
                     <div class="test-case-details">
 
                         ${test.method}
+
                         |
+
                         ${test.url}
+
                         |
+
                         Expected:
+
                         ${test.expected_status}
+
                         |
+
                         Field:
+
                         ${test.expected_field || "None"}
+
                         |
+
                         Repeat:
+
                         ${test.repeat}
 
                     </div>
@@ -638,7 +737,9 @@ function displayTestCases(testCases) {
 
 
                 <button
+
                     class="delete-button"
+
                     onclick="deleteTestCase(${index})">
 
                     Delete
@@ -648,7 +749,9 @@ function displayTestCases(testCases) {
             `;
 
 
-            container.appendChild(item);
+            container.appendChild(
+                item
+            );
 
         }
     );
@@ -661,11 +764,12 @@ function displayTestCases(testCases) {
 // ==========================================
 
 document
-    .getElementById("addTestBtn")
+    .getElementById(
+        "addTestBtn"
+    )
     .addEventListener(
         "click",
         async function () {
-
 
             const name =
                 document.getElementById(
@@ -713,7 +817,10 @@ document
                 );
 
 
-            if (!name || !url) {
+            if (
+                !name ||
+                !url
+            ) {
 
                 message.textContent =
                     "Please enter test name and API URL.";
@@ -722,6 +829,7 @@ document
                     "#ff6b6b";
 
                 return;
+
             }
 
 
@@ -729,24 +837,31 @@ document
 
                 const response =
                     await fetch(
-                        API_BASE + "/test-cases",
+                        API_BASE +
+                        "/test-cases",
                         {
 
-                            method: "POST",
+                            method:
+                                "POST",
 
                             headers: {
+
                                 "Content-Type":
                                     "application/json"
+
                             },
 
                             body:
                                 JSON.stringify({
 
-                                    name: name,
+                                    name:
+                                        name,
 
-                                    url: url,
+                                    url:
+                                        url,
 
-                                    method: method,
+                                    method:
+                                        method,
 
                                     expected_status:
                                         expectedStatus,
@@ -758,6 +873,7 @@ document
                                         repeat
 
                                 })
+
                         }
                     );
 
@@ -766,10 +882,14 @@ document
                     await response.json();
 
 
-                if (!data.success) {
+                if (
+                    !response.ok ||
+                    !data.success
+                ) {
 
                     throw new Error(
-                        data.message
+                        data.message ||
+                        "Unable to add test case"
                     );
 
                 }
@@ -825,7 +945,9 @@ document
 // DELETE TEST CASE
 // ==========================================
 
-async function deleteTestCase(index) {
+async function deleteTestCase(
+    index
+) {
 
     if (
         !confirm(
@@ -842,12 +964,18 @@ async function deleteTestCase(index) {
 
         const response =
             await fetch(
+
                 API_BASE +
                 "/test-cases/" +
                 index,
+
                 {
-                    method: "DELETE"
+
+                    method:
+                        "DELETE"
+
                 }
+
             );
 
 
@@ -855,10 +983,14 @@ async function deleteTestCase(index) {
             await response.json();
 
 
-        if (!data.success) {
+        if (
+            !response.ok ||
+            !data.success
+        ) {
 
             throw new Error(
-                data.message
+                data.message ||
+                "Unable to delete test case"
             );
 
         }
@@ -885,7 +1017,9 @@ async function deleteTestCase(index) {
 // ==========================================
 
 document
-    .getElementById("runTestsBtn")
+    .getElementById(
+        "runTestsBtn"
+    )
     .addEventListener(
         "click",
         async function () {
@@ -898,7 +1032,9 @@ document
 
             try {
 
-                button.disabled = true;
+                button.disabled =
+                    true;
+
 
                 button.textContent =
                     "⏳ Running...";
@@ -906,11 +1042,17 @@ document
 
                 const response =
                     await fetch(
+
                         API_BASE +
                         "/run-tests",
+
                         {
-                            method: "POST"
+
+                            method:
+                                "POST"
+
                         }
+
                     );
 
 
@@ -918,41 +1060,64 @@ document
                     await response.json();
 
 
-                if (!data.success) {
+                if (
+                    !response.ok ||
+                    !data.success
+                ) {
 
                     throw new Error(
+
                         data.error ||
                         "Tester execution failed"
+
                     );
 
                 }
 
+
+                // =========================
+                // UPDATE SUMMARY
+                // =========================
 
                 displaySummary(
                     data.results
                 );
 
 
+                // =========================
+                // UPDATE RESULTS
+                // =========================
+
                 displayResults(
                     data.results
                 );
 
+
+                // =========================
+                // UPDATE AI ANALYSIS
+                // =========================
 
                 displayAIResults(
                     data.results
                 );
 
 
-                await loadFailurePatterns();
+                // =========================
+                // UPDATE FAILURE PATTERNS
+                // =========================
+
+                displayFailurePatterns(
+                    data.failure_patterns
+                );
 
 
-                if (data.history) {
+                // =========================
+                // UPDATE HISTORY
+                // =========================
 
-                    displayHistory(
-                        data.history
-                    );
-
-                }
+                displayHistory(
+                    data.history
+                );
 
 
                 document.getElementById(
@@ -965,7 +1130,9 @@ document
 
             catch (error) {
 
-                console.error(error);
+                console.error(
+                    error
+                );
 
 
                 document.getElementById(
@@ -984,7 +1151,9 @@ document
 
             finally {
 
-                button.disabled = false;
+                button.disabled =
+                    false;
+
 
                 button.textContent =
                     "▶ Run Tests";
