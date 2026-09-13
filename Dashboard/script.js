@@ -1106,8 +1106,14 @@ document
                 // UPDATE FAILURE PATTERNS
                 // =========================
 
+                const latestPatterns =
+                    await fetchJSON(
+                        API_BASE +
+                        "/failure-patterns"
+                    );
+
                 displayFailurePatterns(
-                    data.failure_patterns
+                    latestPatterns
                 );
 
 
