@@ -9,7 +9,9 @@ import time
 import random
 
 
-#Auto Deploy Test
+# ==========================================
+# APP
+# ==========================================
 
 app = FastAPI(
     title="REST API Automated Testing System"
@@ -30,13 +32,17 @@ app.add_middleware(
 
 
 # ==========================================
-# HELPER
+# BASE DIRECTORY
 # ==========================================
 
 BASE_DIR = os.path.dirname(
     os.path.abspath(__file__)
 )
 
+
+# ==========================================
+# JSON HELPER
+# ==========================================
 
 def load_json_file(filename, default):
     path = os.path.join(
@@ -46,22 +52,37 @@ def load_json_file(filename, default):
 
     try:
         if os.path.exists(path):
-
             with open(
                 path,
                 "r",
                 encoding="utf-8"
             ) as file:
-
                 return json.load(file)
 
     except Exception as e:
-
         print(
             f"Error reading {filename}: {e}"
         )
 
     return default
+
+
+def save_json_file(filename, data):
+    path = os.path.join(
+        BASE_DIR,
+        filename
+    )
+
+    with open(
+        path,
+        "w",
+        encoding="utf-8"
+    ) as file:
+        json.dump(
+            data,
+            file,
+            indent=4
+        )
 
 
 # ==========================================
@@ -70,7 +91,6 @@ def load_json_file(filename, default):
 
 @app.get("/")
 def home():
-
     return {
         "message":
             "REST API Testing System is running"
@@ -79,7 +99,6 @@ def home():
 
 @app.get("/users")
 def users():
-
     return {
         "users": [
             {
@@ -96,7 +115,6 @@ def users():
 
 @app.get("/products")
 def products():
-
     return {
         "products": [
             {
@@ -115,7 +133,6 @@ def products():
 
 @app.get("/orders")
 def orders():
-
     return {
         "orders": [
             {
@@ -129,7 +146,6 @@ def orders():
 
 @app.get("/broken")
 def broken():
-
     return {
         "error": "users field missing"
     }
@@ -170,15 +186,10 @@ def unstable():
 class TestCase(BaseModel):
 
     name: str
-
     url: str
-
     method: str
-
     expected_status: int
-
     expected_field: str = ""
-
     repeat: int = 1
 
 
@@ -204,11 +215,6 @@ def add_test_case(
     test_case: TestCase
 ):
 
-    path = os.path.join(
-        BASE_DIR,
-        "test_cases.json"
-    )
-
     test_cases = load_json_file(
         "test_cases.json",
         []
@@ -220,28 +226,17 @@ def add_test_case(
         new_test
     )
 
-    with open(
-        path,
-        "w",
-        encoding="utf-8"
-    ) as file:
-
-        json.dump(
-            test_cases,
-            file,
-            indent=4
-        )
+    save_json_file(
+        "test_cases.json",
+        test_cases
+    )
 
     return {
-
         "success": True,
-
         "message":
             "Test case added successfully",
-
         "test_case":
             new_test
-
     }
 
 
@@ -251,11 +246,6 @@ def add_test_case(
 
 @app.delete("/test-cases/{index}")
 def delete_test_case(index: int):
-
-    path = os.path.join(
-        BASE_DIR,
-        "test_cases.json"
-    )
 
     test_cases = load_json_file(
         "test_cases.json",
@@ -268,45 +258,31 @@ def delete_test_case(index: int):
     ):
 
         return {
-
             "success": False,
-
             "message":
                 "Invalid test case"
-
         }
 
     removed = test_cases.pop(
         index
     )
 
-    with open(
-        path,
-        "w",
-        encoding="utf-8"
-    ) as file:
-
-        json.dump(
-            test_cases,
-            file,
-            indent=4
-        )
+    save_json_file(
+        "test_cases.json",
+        test_cases
+    )
 
     return {
-
         "success": True,
-
         "message":
             "Test case deleted",
-
         "deleted":
             removed
-
     }
 
 
 # ==========================================
-# GET TEST RESULTS
+# TEST RESULTS
 # ==========================================
 
 @app.get("/test-results")
@@ -319,20 +295,22 @@ def get_test_results():
 
 
 # ==========================================
-# GET FAILURE PATTERNS
+# FAILURE PATTERNS
 # ==========================================
 
 @app.get("/failure-patterns")
 def get_failure_patterns():
 
-    return load_json_file(
+    patterns = load_json_file(
         "failure_patterns.json",
         {}
     )
 
+    return patterns
+
 
 # ==========================================
-# GET TEST HISTORY
+# TEST HISTORY
 # ==========================================
 
 @app.get("/test-history")
@@ -358,9 +336,21 @@ def run_tests():
             "tester.py"
         )
 
-        print("\n================================")
-        print("RUNNING API TESTS")
-        print("================================")
+        print(
+            "\n================================"
+        )
+
+        print(
+            "RUNNING API TESTS"
+        )
+
+        print(
+            "================================"
+        )
+
+        # ----------------------------------
+        # RUN TESTER
+        # ----------------------------------
 
         result = subprocess.run(
 
@@ -378,7 +368,6 @@ def run_tests():
             encoding="utf-8",
 
             errors="replace"
-
         )
 
         print(
@@ -387,36 +376,28 @@ def run_tests():
 
         if result.stderr:
 
-            print("ERROR:")
+            print(
+                "ERROR:"
+            )
 
             print(
                 result.stderr
             )
 
 
-        # ==================================
-        # LOAD RESULTS
-        # ==================================
+        # ----------------------------------
+        # LOAD UPDATED FILES
+        # ----------------------------------
 
         test_results = load_json_file(
             "test_results.json",
             []
         )
 
-
-        # ==================================
-        # LOAD HISTORY
-        # ==================================
-
         history = load_json_file(
             "test_history.json",
             []
         )
-
-
-        # ==================================
-        # LOAD FAILURE PATTERNS
-        # ==================================
 
         failure_patterns = load_json_file(
             "failure_patterns.json",
@@ -424,9 +405,47 @@ def run_tests():
         )
 
 
-        # ==================================
+        # ----------------------------------
+        # DEBUG OUTPUT
+        # ----------------------------------
+
+        print(
+            "TEST RESULTS:"
+        )
+
+        print(
+            json.dumps(
+                test_results,
+                indent=2
+            )
+        )
+
+        print(
+            "FAILURE PATTERNS:"
+        )
+
+        print(
+            json.dumps(
+                failure_patterns,
+                indent=2
+            )
+        )
+
+        print(
+            "TEST HISTORY:"
+        )
+
+        print(
+            json.dumps(
+                history,
+                indent=2
+            )
+        )
+
+
+        # ----------------------------------
         # RETURN EVERYTHING
-        # ==================================
+        # ----------------------------------
 
         return {
 
@@ -436,22 +455,26 @@ def run_tests():
             "results":
                 test_results,
 
-            "history":
-                history,
-
             "failure_patterns":
                 failure_patterns,
+
+            "history":
+                history,
 
             "output":
                 result.stdout,
 
             "error":
                 result.stderr
-
         }
 
 
     except Exception as e:
+
+        print(
+            "RUN TEST ERROR:",
+            str(e)
+        )
 
         return {
 
@@ -459,13 +482,12 @@ def run_tests():
 
             "results": [],
 
-            "history": [],
-
             "failure_patterns": {},
+
+            "history": [],
 
             "output": "",
 
             "error":
                 str(e)
-
         }
