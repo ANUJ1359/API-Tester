@@ -9,7 +9,9 @@ import time
 import random
 
 
-app = FastAPI(title="REST API Automated Testing System")
+app = FastAPI(
+    title="REST API Automated Testing System"
+)
 
 
 # ==========================================
@@ -26,18 +28,56 @@ app.add_middleware(
 
 
 # ==========================================
+# HELPER
+# ==========================================
+
+BASE_DIR = os.path.dirname(
+    os.path.abspath(__file__)
+)
+
+
+def load_json_file(filename, default):
+    path = os.path.join(
+        BASE_DIR,
+        filename
+    )
+
+    try:
+        if os.path.exists(path):
+
+            with open(
+                path,
+                "r",
+                encoding="utf-8"
+            ) as file:
+
+                return json.load(file)
+
+    except Exception as e:
+
+        print(
+            f"Error reading {filename}: {e}"
+        )
+
+    return default
+
+
+# ==========================================
 # DEMO APIs
 # ==========================================
 
 @app.get("/")
 def home():
+
     return {
-        "message": "REST API Testing System is running"
+        "message":
+            "REST API Testing System is running"
     }
 
 
 @app.get("/users")
 def users():
+
     return {
         "users": [
             {
@@ -54,6 +94,7 @@ def users():
 
 @app.get("/products")
 def products():
+
     return {
         "products": [
             {
@@ -72,6 +113,7 @@ def products():
 
 @app.get("/orders")
 def orders():
+
     return {
         "orders": [
             {
@@ -85,6 +127,7 @@ def orders():
 
 @app.get("/broken")
 def broken():
+
     return {
         "error": "users field missing"
     }
@@ -92,6 +135,7 @@ def broken():
 
 @app.get("/slow")
 def slow():
+
     time.sleep(3)
 
     return {
@@ -105,13 +149,15 @@ def unstable():
     if random.choice([True, False]):
 
         return {
-            "message": "API working normally"
+            "message":
+                "API working normally"
         }
 
     else:
 
         return {
-            "error": "Something went wrong"
+            "error":
+                "Something went wrong"
         }
 
 
@@ -122,10 +168,15 @@ def unstable():
 class TestCase(BaseModel):
 
     name: str
+
     url: str
+
     method: str
+
     expected_status: int
+
     expected_field: str = ""
+
     repeat: int = 1
 
 
@@ -136,23 +187,10 @@ class TestCase(BaseModel):
 @app.get("/test-cases")
 def get_test_cases():
 
-    base_dir = os.path.dirname(
-        os.path.abspath(__file__)
+    return load_json_file(
+        "test_cases.json",
+        []
     )
-
-    path = os.path.join(
-        base_dir,
-        "test_cases.json"
-    )
-
-    try:
-
-        with open(path, "r") as file:
-            return json.load(file)
-
-    except:
-
-        return []
 
 
 # ==========================================
@@ -160,33 +198,31 @@ def get_test_cases():
 # ==========================================
 
 @app.post("/test-cases")
-def add_test_case(test_case: TestCase):
-
-    base_dir = os.path.dirname(
-        os.path.abspath(__file__)
-    )
+def add_test_case(
+    test_case: TestCase
+):
 
     path = os.path.join(
-        base_dir,
+        BASE_DIR,
         "test_cases.json"
     )
 
-    try:
-
-        with open(path, "r") as file:
-            test_cases = json.load(file)
-
-    except:
-
-        test_cases = []
-
+    test_cases = load_json_file(
+        "test_cases.json",
+        []
+    )
 
     new_test = test_case.model_dump()
 
-    test_cases.append(new_test)
+    test_cases.append(
+        new_test
+    )
 
-
-    with open(path, "w") as file:
+    with open(
+        path,
+        "w",
+        encoding="utf-8"
+    ) as file:
 
         json.dump(
             test_cases,
@@ -194,11 +230,16 @@ def add_test_case(test_case: TestCase):
             indent=4
         )
 
-
     return {
+
         "success": True,
-        "message": "Test case added successfully",
-        "test_case": new_test
+
+        "message":
+            "Test case added successfully",
+
+        "test_case":
+            new_test
+
     }
 
 
@@ -209,40 +250,39 @@ def add_test_case(test_case: TestCase):
 @app.delete("/test-cases/{index}")
 def delete_test_case(index: int):
 
-    base_dir = os.path.dirname(
-        os.path.abspath(__file__)
-    )
-
     path = os.path.join(
-        base_dir,
+        BASE_DIR,
         "test_cases.json"
     )
 
-    try:
+    test_cases = load_json_file(
+        "test_cases.json",
+        []
+    )
 
-        with open(path, "r") as file:
-            test_cases = json.load(file)
-
-    except:
-
-        return {
-            "success": False,
-            "message": "Test cases file not found"
-        }
-
-
-    if index < 0 or index >= len(test_cases):
+    if (
+        index < 0
+        or index >= len(test_cases)
+    ):
 
         return {
+
             "success": False,
-            "message": "Invalid test case"
+
+            "message":
+                "Invalid test case"
+
         }
 
+    removed = test_cases.pop(
+        index
+    )
 
-    removed = test_cases.pop(index)
-
-
-    with open(path, "w") as file:
+    with open(
+        path,
+        "w",
+        encoding="utf-8"
+    ) as file:
 
         json.dump(
             test_cases,
@@ -250,12 +290,56 @@ def delete_test_case(index: int):
             indent=4
         )
 
-
     return {
+
         "success": True,
-        "message": "Test case deleted",
-        "deleted": removed
+
+        "message":
+            "Test case deleted",
+
+        "deleted":
+            removed
+
     }
+
+
+# ==========================================
+# GET TEST RESULTS
+# ==========================================
+
+@app.get("/test-results")
+def get_test_results():
+
+    return load_json_file(
+        "test_results.json",
+        []
+    )
+
+
+# ==========================================
+# GET FAILURE PATTERNS
+# ==========================================
+
+@app.get("/failure-patterns")
+def get_failure_patterns():
+
+    return load_json_file(
+        "failure_patterns.json",
+        {}
+    )
+
+
+# ==========================================
+# GET TEST HISTORY
+# ==========================================
+
+@app.get("/test-history")
+def get_test_history():
+
+    return load_json_file(
+        "test_history.json",
+        []
+    )
 
 
 # ==========================================
@@ -267,36 +351,23 @@ def run_tests():
 
     try:
 
-        base_dir = os.path.dirname(
-            os.path.abspath(__file__)
-        )
-
         tester_path = os.path.join(
-            base_dir,
+            BASE_DIR,
             "tester.py"
         )
-
-        results_path = os.path.join(
-            base_dir,
-            "test_results.json"
-        )
-
-        history_path = os.path.join(
-            base_dir,
-            "test_history.json"
-        )
-
 
         print("\n================================")
         print("RUNNING API TESTS")
         print("================================")
 
-
         result = subprocess.run(
 
-            [sys.executable, tester_path],
+            [
+                sys.executable,
+                tester_path
+            ],
 
-            cwd=base_dir,
+            cwd=BASE_DIR,
 
             capture_output=True,
 
@@ -305,53 +376,55 @@ def run_tests():
             encoding="utf-8",
 
             errors="replace"
+
         )
 
-
-        print(result.stdout)
-
+        print(
+            result.stdout
+        )
 
         if result.stderr:
 
             print("ERROR:")
-            print(result.stderr)
+
+            print(
+                result.stderr
+            )
 
 
-        # ------------------------------
-        # RESULTS
-        # ------------------------------
+        # ==================================
+        # LOAD RESULTS
+        # ==================================
 
-        if os.path.exists(results_path):
-
-            with open(
-                results_path,
-                "r"
-            ) as file:
-
-                test_results = json.load(file)
-
-        else:
-
-            test_results = []
+        test_results = load_json_file(
+            "test_results.json",
+            []
+        )
 
 
-        # ------------------------------
-        # HISTORY
-        # ------------------------------
+        # ==================================
+        # LOAD HISTORY
+        # ==================================
 
-        if os.path.exists(history_path):
+        history = load_json_file(
+            "test_history.json",
+            []
+        )
 
-            with open(
-                history_path,
-                "r"
-            ) as file:
 
-                history = json.load(file)
+        # ==================================
+        # LOAD FAILURE PATTERNS
+        # ==================================
 
-        else:
+        failure_patterns = load_json_file(
+            "failure_patterns.json",
+            {}
+        )
 
-            history = []
 
+        # ==================================
+        # RETURN EVERYTHING
+        # ==================================
 
         return {
 
@@ -364,11 +437,15 @@ def run_tests():
             "history":
                 history,
 
+            "failure_patterns":
+                failure_patterns,
+
             "output":
                 result.stdout,
 
             "error":
                 result.stderr
+
         }
 
 
@@ -382,7 +459,11 @@ def run_tests():
 
             "history": [],
 
+            "failure_patterns": {},
+
             "output": "",
 
-            "error": str(e)
+            "error":
+                str(e)
+
         }
